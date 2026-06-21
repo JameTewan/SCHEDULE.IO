@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบตารางเรียน (Light / Dark Mode)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Mitr:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Mitr', '-apple-system', 'sans-serif'],
+                        display: ['Mitr', 'sans-serif'],
+                        mono: ['ui-monospace', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            primary: '#fcfdff',
+                            primaryOn: '#000000',
+                            ink: '#fcfdff',
+                            body: 'rgba(252,253,255,0.86)',
+                            charcoal: 'rgba(252,253,255,0.7)',
+                            mute: '#a1a4a5',
+                            canvas: '#000000',
+                            surfaceCard: '#0a0a0c',
+                            surfaceElevated: '#101012',
+                            surfaceDeep: '#06060a',
+                            hairline: 'rgba(255,255,255,0.06)',
+                            hairlineStrong: 'rgba(255,255,255,0.14)',
+                            dividerSoft: 'rgba(255,255,255,0.04)',
+                            accentOrange: '#ff801f',
+                            accentYellow: '#ffc53d',
+                            accentBlue: '#3b9eff',
+                            accentGreen: '#11ff99',
+                            accentRed: '#ff2047',
+                            surfaceLight: '#f1f7fe'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+        }
+        .dark ::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.5;
+        }
+        html:not(.dark) ::-webkit-calendar-picker-indicator {
+            filter: invert(0);
+            opacity: 0.6;
+        }
+        .truncate-2-lines {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .atmospheric-glow {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
+            height: 600px;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 117, 255, 0.07) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative selection:bg-brand-accentBlue selection:text-white bg-[#fafafa] dark:bg-black text-zinc-900 dark:text-brand-body transition-colors duration-200">
+
+    <div class="atmospheric-glow opacity-0 dark:opacity-100 transition-opacity duration-300"></div>
+
+    <nav class="h-[64px] border-b border-zinc-200 dark:border-brand-hairline flex items-center justify-between px-6 sm:px-8 relative z-10 bg-white/80 dark:bg-black/80 backdrop-blur-md">
+        <div class="font-display font-medium text-zinc-900 dark:text-brand-ink text-[14px] tracking-[0.35px]">SCHEDULE.IO</div>
+        
+        <button onclick="toggleTheme()" class="h-[36px] w-[36px] flex items-center justify-center rounded-[8px] border border-zinc-200 dark:border-brand-hairlineStrong bg-white dark:bg-brand-surfaceElevated hover:bg-zinc-50 dark:hover:bg-brand-surfaceCard transition group text-zinc-600 dark:text-brand-mute">
+            <svg class="hidden dark:block w-4 h-4 group-hover:text-brand-accentYellow transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <svg class="block dark:hidden w-4 h-4 group-hover:text-brand-accentBlue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+        </button>
+    </nav>
+
+    <div class="max-w-[1200px] mx-auto p-4 sm:p-8 relative z-10 mt-4">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-[48px] gap-6">
+            <div>
+                <h1 class="font-display text-[44px] sm:text-[56px] leading-[1.0] tracking-tight sm:tracking-[-2.0px] text-zinc-900 dark:text-brand-primary mb-3">
+                    ตารางเรียน
+                </h1>
+                <p class="text-[16px] sm:text-[18px] text-zinc-500 dark:text-brand-charcoal font-sans">
+                    ระบบจัดการและคำนวณคาบเรียนรายสัปดาห์
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap gap-3 w-full sm:w-auto">
+                <div class="flex gap-1 border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] p-1 bg-white dark:bg-brand-surfaceElevated">
+                    <button onclick="exportJSON()" class="px-[12px] py-[4px] text-[13px] font-medium text-zinc-500 dark:text-brand-charcoal hover:text-zinc-900 dark:hover:text-brand-ink transition">Export</button>
+                    <div class="w-[1px] bg-zinc-200 dark:bg-brand-hairline my-1"></div>
+                    <label class="px-[12px] py-[4px] text-[13px] font-medium text-zinc-500 dark:text-brand-charcoal hover:text-zinc-900 dark:hover:text-brand-ink transition cursor-pointer">
+                        Import
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importJSON(event)">
+                    </label>
+                </div>
+                <button onclick="openAddModal()" class="h-[36px] px-[16px] text-[13px] font-medium bg-zinc-900 text-white dark:bg-brand-primary dark:text-brand-primaryOn rounded-[8px] hover:bg-zinc-800 dark:hover:bg-brand-surfaceLight transition-colors">
+                    + เพิ่มรายวิชา
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-8 p-[24px] sm:p-[32px] bg-white dark:bg-brand-surfaceCard rounded-[12px] border border-zinc-200 dark:border-brand-hairlineStrong">
+            <h2 class="text-[12px] font-medium tracking-[0.35px] text-zinc-400 dark:text-brand-mute uppercase mb-4 flex items-center gap-2">
+                <span class="w-[8px] h-[8px] rounded-full bg-brand-accentGreen animate-pulse"></span>
+                คลาสเรียนถัดไป
+            </h2>
+            <div id="nextClassContainer" class="text-zinc-700 dark:text-brand-body text-[15px] font-sans">กำลังโหลดข้อมูล...</div>
+        </div>
+
+        <div class="bg-white dark:bg-brand-surfaceDeep rounded-[12px] border border-zinc-200 dark:border-brand-hairlineStrong overflow-hidden w-full relative">
+            <div class="h-[40px] border-b border-zinc-200 dark:border-brand-hairlineStrong flex items-center px-[24px] gap-2 bg-zinc-50 dark:bg-transparent">
+                <div class="w-[8px] h-[8px] rounded-full bg-brand-accentRed opacity-80"></div>
+                <div class="w-[8px] h-[8px] rounded-full bg-brand-accentYellow opacity-80"></div>
+                <div class="w-[8px] h-[8px] rounded-full bg-brand-accentGreen opacity-80"></div>
+                <div class="ml-4 text-[12px] text-zinc-400 dark:text-brand-mute font-mono">timetable.sh</div>
+            </div>
+
+            <div class="w-full flex flex-col px-[16px] sm:px-[24px] pb-[24px] pt-4 overflow-x-auto">
+                <div class="min-w-[768px]">
+                    <div id="timeHeader" class="flex border-b border-zinc-200 dark:border-brand-hairlineStrong"></div>
+                    <div id="daysContainer" class="flex flex-col w-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addCourseModal" class="fixed inset-0 bg-black/40 dark:bg-brand-canvas/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-brand-surfaceCard w-full max-w-lg rounded-[12px] border border-zinc-200 dark:border-brand-hairlineStrong overflow-hidden">
+            <div class="p-[24px] border-b border-zinc-200 dark:border-brand-hairlineStrong flex justify-between items-center bg-zinc-50 dark:bg-transparent">
+                <h3 id="formModalTitle" class="text-[18px] font-medium tracking-tight text-zinc-900 dark:text-brand-ink">เพิ่มรายวิชาใหม่</h3>
+                <button onclick="closeModal('addCourseModal')" class="text-zinc-400 hover:text-zinc-600 dark:text-brand-mute dark:hover:text-brand-ink transition text-2xl leading-none">×</button>
+            </div>
+            <form id="courseForm" onsubmit="saveCourse(event)" class="p-[24px] space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[13px] text-zinc-500 dark:text-brand-mute mb-2">รหัสวิชา</label>
+                        <input type="text" id="courseCode" required class="w-full px-[14px] h-[40px] text-[14px] bg-zinc-50 dark:bg-brand-surfaceDeep border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] focus:outline-none focus:border-zinc-900 dark:focus:border-brand-ink text-zinc-900 dark:text-brand-ink uppercase placeholder:text-zinc-400 dark:placeholder:text-brand-mute/50 transition" placeholder="EN842000">
+                    </div>
+                    <div>
+                        <label class="block text-[13px] text-zinc-500 dark:text-brand-mute mb-2">หน่วยกิต & Section</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="courseCredit" required class="w-1/2 px-[14px] h-[40px] text-[14px] bg-zinc-50 dark:bg-brand-surfaceDeep border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] focus:outline-none focus:border-zinc-900 dark:focus:border-brand-ink text-zinc-900 dark:text-brand-ink placeholder:text-zinc-400 dark:placeholder:text-brand-mute/50 transition" placeholder="หน่วยกิต">
+                            <input type="text" id="courseSec" class="w-1/2 px-[14px] h-[40px] text-[14px] bg-zinc-50 dark:bg-brand-surfaceDeep border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] focus:outline-none focus:border-zinc-900 dark:focus:border-brand-ink text-zinc-900 dark:text-brand-ink placeholder:text-zinc-400 dark:placeholder:text-brand-mute/50 transition" placeholder="Sec">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[13px] text-zinc-500 dark:text-brand-mute mb-2">วันเรียน</label>
+                        <select id="courseDay" required class="w-full px-[14px] h-[40px] text-[14px] bg-zinc-50 dark:bg-brand-surfaceDeep border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] focus:outline-none focus:border-zinc-900 dark:focus:border-brand-ink text-zinc-900 dark:text-brand-ink cursor-pointer transition">
+                            <option value="1">จันทร์</option>
+                            <option value="2">อังคาร</option>
+                            <option value="3">พุธ</option>
+                            <option value="4">พฤหัสบดี</option>
+                            <option value="5">ศุกร์</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[13px] text-zinc-500 dark:text-brand-mute mb-2">เวลาเริ่ม</label>
+                        <input type="time" id="courseStart" required min="08:00" max="16:00" class="w-full px-[14px] h-[40px] text-[14px] bg-zinc-50 dark:bg-brand-surfaceDeep border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] focus:outline-none focus:border-zinc-900 dark:focus:border-brand-ink text-zinc-900 dark:text-brand-ink transition">
+                    </div>
+                    <div>
+                        <label class="block text-[13px] text-zinc-500 dark:text-brand-mute mb-2">เวลาสิ้นสุด</label>
+                        <input type="time" id="courseEnd" required min="09:00" max="17:00" class="w-full px-[14px] h-[40px] text-[14px] bg-zinc-50 dark:bg-brand-surfaceDeep border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] focus:outline-none focus:border-zinc-900 dark:focus:border-brand-ink text-zinc-900 dark:text-brand-ink transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[13px] text-zinc-500 dark:text-brand-mute mb-2">อาคาร/ห้องเรียน</label>
+                    <input type="text" id="courseRoom" class="w-full px-[14px] h-[40px] text-[14px] bg-zinc-50 dark:bg-brand-surfaceDeep border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] focus:outline-none focus:border-zinc-900 dark:focus:border-brand-ink text-zinc-900 dark:text-brand-ink placeholder:text-zinc-400 dark:placeholder:text-brand-mute/50 transition" placeholder="ระบุชื่ออาคาร หรือ ห้องเรียน...">
+                </div>
+
+                <div class="pt-[16px] flex justify-end gap-3 border-t border-zinc-100 dark:border-brand-hairlineStrong mt-4">
+                    <button type="button" onclick="closeModal('addCourseModal')" class="h-[36px] px-[16px] text-[13px] font-medium bg-zinc-100 text-zinc-700 dark:bg-brand-surfaceElevated dark:text-brand-ink border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] hover:border-zinc-400 dark:hover:border-brand-mute transition">ยกเลิก</button>
+                    <button type="submit" id="submitFormBtn" class="h-[36px] px-[16px] text-[13px] font-medium bg-zinc-900 text-white dark:bg-brand-primary dark:text-brand-primaryOn rounded-[8px] hover:bg-zinc-800 dark:hover:bg-brand-surfaceLight transition-colors">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="detailModal" class="fixed inset-0 bg-black/40 dark:bg-brand-canvas/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-brand-surfaceCard w-full max-w-md rounded-[12px] border border-zinc-200 dark:border-brand-hairlineStrong p-[32px] relative overflow-hidden">
+            <button onclick="closeModal('detailModal')" class="absolute top-4 right-5 text-zinc-400 hover:text-zinc-600 dark:text-brand-mute dark:hover:text-brand-ink transition text-2xl leading-none">×</button>
+            
+            <div id="detailContent" class="space-y-4"></div>
+            
+            <div class="mt-[24px] pt-[24px] border-t border-zinc-200 dark:border-brand-hairlineStrong flex flex-col gap-3">
+                <div class="flex gap-3">
+                    <button id="editBtn" class="flex-1 h-[36px] text-[13px] font-medium bg-zinc-100 text-zinc-700 dark:bg-brand-surfaceElevated dark:text-brand-ink border border-zinc-200 dark:border-brand-hairlineStrong rounded-[8px] hover:border-zinc-400 dark:hover:border-brand-mute transition">
+                        แก้ไขข้อมูล
+                    </button>
+                    <button id="deleteBtn" class="flex-1 h-[36px] text-[13px] font-medium bg-red-50 text-red-600 dark:bg-[#ff2047]/10 dark:text-brand-accentRed border border-red-200 dark:border-[#ff2047]/20 rounded-[8px] hover:bg-red-100 dark:hover:bg-[#ff2047]/20 transition-colors">
+                        ลบวิชานี้
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let courses = JSON.parse(localStorage.getItem('schedule_courses')) || [];
+        const START_HOUR = 8;
+        const END_HOUR = 17; 
+        const TOTAL_MINUTES = (END_HOUR - START_HOUR) * 60; 
+        let editingCourseId = null;
+
+        const daysData = [
+            { id: 1, name: 'จันทร์', hex: '#ffc53d', textColor: 'text-amber-500 dark:text-brand-accentYellow' },
+            { id: 2, name: 'อังคาร', hex: '#ff2047', textColor: 'text-red-500 dark:text-brand-accentRed' },
+            { id: 3, name: 'พุธ', hex: '#11ff99', textColor: 'text-emerald-500 dark:text-brand-accentGreen' },
+            { id: 4, name: 'พฤหัสบดี', hex: '#ff801f', textColor: 'text-orange-500 dark:text-brand-accentOrange' },
+            { id: 5, name: 'ศุกร์', hex: '#3b9eff', textColor: 'text-blue-500 dark:text-brand-accentBlue' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTimetableBase();
+            renderTimetableData();
+            renderTimeline();
+            
+            // ให้อัปเดต Timeline ทุกๆ 1 นาที เผื่อเปิดจอทิ้งไว้
+            setInterval(renderTimeline, 60000); 
+        });
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            renderTimetableData();
+        }
+
+        function renderTimetableBase() {
+            const timeHeader = document.getElementById('timeHeader');
+            let headerHTML = `
+                <div class="w-[12%] shrink-0 border-r border-zinc-200 dark:border-brand-hairlineStrong flex items-center justify-center font-medium text-[12px] text-zinc-400 dark:text-brand-mute py-3">
+                    เวลา
+                </div>
+                <div class="w-[88%] flex">
+            `;
+            
+            for (let i = START_HOUR; i < END_HOUR; i++) {
+                headerHTML += `
+                    <div class="flex-1 border-r border-zinc-200 dark:border-brand-hairlineStrong last:border-r-0 text-center py-3 text-[12px] font-mono text-zinc-400 dark:text-brand-charcoal">
+                        ${i.toString().padStart(2, '0')}:00
+                    </div>
+                `;
+            }
+            headerHTML += `</div>`;
+            timeHeader.innerHTML = headerHTML;
+
+            const daysContainer = document.getElementById('daysContainer');
+            daysContainer.innerHTML = '';
+            
+            daysData.forEach(day => {
+                let rowHTML = `
+                    <div class="flex border-b border-zinc-200 dark:border-brand-hairlineStrong last:border-b-0 min-h-[85px] relative">
+                        <div class="w-[12%] shrink-0 border-r border-zinc-200 dark:border-brand-hairlineStrong flex items-center justify-center font-medium ${day.textColor} text-[14px]">
+                            ${day.name}
+                        </div>
+                        <div class="w-[88%] flex relative bg-white dark:bg-brand-surfaceDeep" id="day-${day.id}">
+                `;
+
+                for (let i = START_HOUR; i < END_HOUR; i++) {
+                    rowHTML += `<div class="flex-1 border-r border-zinc-100 dark:border-brand-hairline last:border-r-0 pointer-events-none"></div>`;
+                }
+
+                rowHTML += `
+                        </div>
+                    </div>
+                `;
+                daysContainer.innerHTML += rowHTML;
+            });
+        }
+
+        function renderTimetableData() {
+            document.querySelectorAll('.course-card').forEach(card => card.remove());
+
+            courses.forEach(course => {
+                const row = document.getElementById(`day-${course.day}`);
+                if (!row) return;
+
+                const startMins = timeToMinutes(course.start);
+                const endMins = timeToMinutes(course.end);
+                const baseMins = START_HOUR * 60;
+
+                const leftPercent = ((startMins - baseMins) / TOTAL_MINUTES) * 100;
+                const widthPercent = ((endMins - startMins) / TOTAL_MINUTES) * 100;
+
+                const colorStyles = getColorByCode(course.code);
+
+                const card = document.createElement('div');
+                card.className = `course-card absolute top-2 bottom-2 rounded-[8px] p-2 cursor-pointer border transition-colors overflow-hidden flex flex-col justify-between ${colorStyles}`;
+                
+                card.style.left = `${leftPercent}%`;
+                card.style.width = `calc(${widthPercent}% - 4px)`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="font-medium text-[13px] tracking-tight truncate">${course.code}</div>
+                        <div class="text-[12px] opacity-75 truncate mt-0.5">${course.room || ''}</div>
+                    </div>
+                    <div class="text-[11px] opacity-60 font-mono whitespace-nowrap">${course.start}-${course.end}</div>
+                `;
+                
+                card.onclick = () => showCourseDetail(course.id);
+                row.appendChild(card);
+            });
+        }
+
+        // [แก้ไข D2] ระบบเวลาที่เรียงข้ามวันแบบสมบูรณ์
+        function renderTimeline() {
+            const container = document.getElementById('nextClassContainer');
+            
+            if (courses.length === 0) {
+                container.innerHTML = `<span class="text-zinc-400 dark:text-brand-mute">ยังไม่มีวิชาในตาราง</span>`;
+                return;
+            }
+
+            const now = new Date();
+            let jsDay = now.getDay(); // 0 = Sun, 1 = Mon ... 6 = Sat
+            let currentMins = now.getHours() * 60 + now.getMinutes();
+
+            // เปลี่ยนจาก JS Day (Sun=0) เป็นระบบของเรา (Mon=1 ... Sun=7)
+            let myDay = jsDay === 0 ? 7 : jsDay;
+
+            // นำทุกวิชามาแปลงให้เป็นเวลา "นาทีรวมตั้งแต่เริ่มวันจันทร์" (Absolute Minutes)
+            let allSessions = courses.map(c => {
+                let startMins = timeToMinutes(c.start);
+                let endMins = timeToMinutes(c.end);
+                let dayOffset = (parseInt(c.day) - 1) * 24 * 60; // 1 วัน = 24*60 นาที
+                return {
+                    ...c,
+                    absStart: dayOffset + startMins,
+                    absEnd: dayOffset + endMins
+                };
+            });
+
+            // คำนวณเวลาปัจจุบันให้เป็นนาทีรวมตั้งแต่เริ่มวันจันทร์เช่นกัน
+            let currentAbsTime = (myDay - 1) * 24 * 60 + currentMins;
+
+            // หากรองานที่ยังไม่จบ (เวลาจบคลาสมากกว่าเวลาปัจจุบัน)
+            let upcoming = allSessions.filter(c => c.absEnd > currentAbsTime);
+            
+            // เรียงลำดับจากเวลาที่กำลังจะเกิดขึ้นเร็วที่สุดไปช้าที่สุด
+            upcoming.sort((a, b) => a.absStart - b.absStart);
+
+            if (upcoming.length > 0) {
+                const next = upcoming[0];
+                const isNow = currentAbsTime >= next.absStart && currentAbsTime < next.absEnd;
+
+                const dayNames = ["", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "อาทิตย์"];
+                // ถ้าเป็นวันอื่นที่ไม่ใช่วันนี้ ให้ระบุชื่อวันลงไปด้วย
+                const dayText = parseInt(next.day) === myDay ? "" : `(วัน${dayNames[parseInt(next.day)]}) `;
+
+                let statusText = isNow 
+                    ? '<span class="text-brand-accentGreen font-medium animate-pulse">กำลังเรียน:</span>' 
+                    : '<span class="text-zinc-500 dark:text-brand-charcoal">เริ่มเรียน:</span>';
+
+                container.innerHTML = `
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-mono text-amber-600 dark:text-brand-accentYellow bg-amber-50 dark:bg-brand-accentYellow/10 px-2 py-1 rounded-[4px] border border-amber-200 dark:border-brand-accentYellow/20 text-[13px]">${next.code}</span>
+                        <span class="text-zinc-500 dark:text-brand-charcoal">Sec ${next.sec || '-'}</span>
+                        <span class="mx-2 text-zinc-200 dark:text-brand-hairlineStrong">|</span>
+                        ${statusText}
+                        <span class="font-medium text-zinc-900 dark:text-brand-ink">${dayText}${next.start} น.</span>
+                        <span class="mx-2 text-zinc-200 dark:text-brand-hairlineStrong">|</span>
+                        <span class="text-zinc-500 dark:text-brand-charcoal">ห้อง:</span>
+                        <span class="font-medium text-zinc-900 dark:text-brand-ink">${next.room || '-'}</span>
+                    </div>
+                `;
+            } else {
+                // ถ้าไม่มีคลาสเหลือในสัปดาห์นี้แล้ว ให้วนกลับไปหาวิชาแรกของวันจันทร์สัปดาห์หน้า
+                allSessions.sort((a, b) => a.absStart - b.absStart);
+                const firstNextWeek = allSessions[0];
+                const dayNames = ["", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์"];
+
+                container.innerHTML = `
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-zinc-500 dark:text-brand-charcoal">คลาสแรกของสัปดาห์ถัดไป:</span>
+                        <span class="font-mono text-amber-600 dark:text-brand-accentYellow bg-amber-50 dark:bg-brand-accentYellow/10 px-2 py-1 rounded-[4px] border border-amber-200 dark:border-brand-accentYellow/20 text-[13px]">${firstNextWeek.code}</span>
+                        <span class="font-medium text-zinc-900 dark:text-brand-ink">วัน${dayNames[parseInt(firstNextWeek.day)]} ${firstNextWeek.start} น.</span>
+                    </div>
+                `;
+            }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            if (id === 'addCourseModal') {
+                document.getElementById('courseForm').reset();
+                editingCourseId = null; 
+            }
+        }
+
+        function openAddModal() {
+            editingCourseId = null;
+            document.getElementById('formModalTitle').innerText = 'เพิ่มรายวิชาใหม่';
+            document.getElementById('submitFormBtn').innerText = 'บันทึกข้อมูล';
+            document.getElementById('courseForm').reset();
+            openModal('addCourseModal');
+        }
+
+        function editCourse(id) {
+            const course = courses.find(c => c.id === id);
+            if (!course) return;
+
+            editingCourseId = id; 
+            
+            document.getElementById('courseCode').value = course.code;
+            document.getElementById('courseCredit').value = course.credit;
+            document.getElementById('courseSec').value = course.sec;
+            document.getElementById('courseDay').value = course.day;
+            document.getElementById('courseStart').value = course.start;
+            document.getElementById('courseEnd').value = course.end;
+            document.getElementById('courseRoom').value = course.room;
+
+            document.getElementById('formModalTitle').innerText = 'แก้ไขรายวิชา';
+            document.getElementById('submitFormBtn').innerText = 'อัปเดตข้อมูล';
+
+            closeModal('detailModal'); 
+            openModal('addCourseModal'); 
+        }
+
+        function saveCourse(e) {
+            e.preventDefault();
+
+            const newCourse = {
+                code: document.getElementById('courseCode').value.toUpperCase(),
+                credit: document.getElementById('courseCredit').value,
+                sec: document.getElementById('courseSec').value,
+                day: document.getElementById('courseDay').value,
+                start: document.getElementById('courseStart').value,
+                end: document.getElementById('courseEnd').value,
+                room: document.getElementById('courseRoom').value
+            };
+
+            if (timeToMinutes(newCourse.start) >= timeToMinutes(newCourse.end)) {
+                alert('เวลาเริ่มเรียนต้องเกิดก่อนเวลาสิ้นสุดวิชา');
+                return;
+            }
+
+            const hasOverlap = courses.some(c => {
+                if (editingCourseId && c.id === editingCourseId) return false; 
+                if (c.day !== newCourse.day) return false;
+                return timeToMinutes(newCourse.start) < timeToMinutes(c.end) && 
+                       timeToMinutes(newCourse.end) > timeToMinutes(c.start);
+            });
+
+            if (hasOverlap) {
+                alert('เวลาเรียนที่คุณระบุทับซ้อนกับรายวิชาที่มีอยู่แล้ว');
+                return;
+            }
+
+            if (editingCourseId) {
+                const index = courses.findIndex(c => c.id === editingCourseId);
+                courses[index] = { ...courses[index], ...newCourse }; 
+            } else {
+                newCourse.id = Date.now().toString();
+                courses.push(newCourse);
+            }
+
+            updateDataAndUI();
+            closeModal('addCourseModal');
+        }
+
+        function showCourseDetail(id) {
+            const course = courses.find(c => c.id === id);
+            if (!course) return;
+
+            const dayName = daysData.find(d => d.id == course.day).name;
+
+            document.getElementById('detailContent').innerHTML = `
+                <div class="border-b border-zinc-200 dark:border-brand-hairlineStrong pb-[24px]">
+                    <h3 class="font-mono text-[24px] text-zinc-900 dark:text-brand-ink leading-tight mb-1">${course.code}</h3>
+                    <div class="text-[14px] text-zinc-500 dark:text-brand-charcoal">Section ${course.sec || '-'}</div>
+                </div>
+                <div class="grid grid-cols-2 gap-y-[16px] text-[14px] mt-[24px]">
+                    <div>
+                        <span class="text-zinc-400 dark:text-brand-mute block text-[12px] mb-1">วันเรียน</span> 
+                        <span class="font-medium text-zinc-900 dark:text-brand-ink">วัน${dayName}</span>
+                    </div>
+                    <div>
+                        <span class="text-zinc-400 dark:text-brand-mute block text-[12px] mb-1">เวลาเรียน</span> 
+                        <span class="font-medium text-zinc-900 dark:text-brand-ink">${course.start} - ${course.end}</span>
+                    </div>
+                    <div>
+                        <span class="text-zinc-400 dark:text-brand-mute block text-[12px] mb-1">หน่วยกิต</span> 
+                        <span class="font-medium text-zinc-900 dark:text-brand-ink">${course.credit}</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-zinc-400 dark:text-brand-mute block text-[12px] mb-1">สถานที่เรียน</span> 
+                        <span class="font-medium text-zinc-900 dark:text-brand-ink">${course.room || '-'}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('editBtn').onclick = () => editCourse(id);
+            document.getElementById('deleteBtn').onclick = () => {
+                if (confirm(`คุณแน่ใจหรือไม่ว่าต้องการนำรายวิชา ${course.code} ออกจากตารางเรียน?`)) {
+                    courses = courses.filter(c => c.id !== id);
+                    updateDataAndUI();
+                    closeModal('detailModal');
+                }
+            };
+
+            openModal('detailModal');
+        }
+
+        function updateDataAndUI() {
+            localStorage.setItem('schedule_courses', JSON.stringify(courses));
+            renderTimetableData();
+            renderTimeline();
+        }
+
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return (hours * 60) + minutes;
+        }
+
+        function getColorByCode(code) {
+            const styles = [
+                'text-blue-700 bg-blue-500/15 border-blue-500/20 dark:text-brand-accentBlue dark:bg-brand-accentBlue/10 dark:border-brand-accentBlue/20 hover:bg-blue-500/25 dark:hover:bg-brand-accentBlue/20',
+                'text-orange-700 bg-orange-500/15 border-orange-500/20 dark:text-brand-accentOrange dark:bg-brand-accentOrange/10 dark:border-brand-accentOrange/20 hover:bg-orange-500/25 dark:hover:bg-brand-accentOrange/20',
+                'text-emerald-700 bg-emerald-500/15 border-emerald-500/20 dark:text-brand-accentGreen dark:bg-brand-accentGreen/10 dark:border-brand-accentGreen/20 hover:bg-emerald-500/25 dark:hover:bg-brand-accentGreen/20',
+                'text-red-700 bg-red-500/15 border-red-500/20 dark:text-brand-accentRed dark:bg-brand-accentRed/10 dark:border-brand-accentRed/20 hover:bg-red-500/25 dark:hover:bg-brand-accentRed/20',
+                'text-amber-700 bg-amber-500/15 border-amber-500/20 dark:text-brand-accentYellow dark:bg-brand-accentYellow/10 dark:border-brand-accentYellow/20 hover:bg-amber-500/25 dark:hover:bg-brand-accentYellow/20'
+            ];
+            let sum = 0;
+            for (let i = 0; i < code.length; i++) sum += code.charCodeAt(i);
+            return styles[sum % styles.length];
+        }
+
+        function exportJSON() {
+            if (courses.length === 0) return alert('ไม่มีข้อมูลวิชาเรียน');
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(courses, null, 2));
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = "schedule_data.json";
+            a.click();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        courses = imported;
+                        updateDataAndUI();
+                    } else alert('โครงสร้างรูปแบบไฟล์ JSON ไม่ถูกต้อง');
+                } catch { alert('เกิดข้อผิดพลาดในการอ่านไฟล์'); }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+    </script>
+</body>
+</html>
